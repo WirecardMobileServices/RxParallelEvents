@@ -1,4 +1,4 @@
 package de.wirecard.rxparallelevents;
 
-public class MainClass {
+public interface Event {
 }
