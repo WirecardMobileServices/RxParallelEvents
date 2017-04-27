@@ -1,16 +1,16 @@
-package de.wirecard.rxparallelevents;
+package de.wirecard.rxparallel;
 
 import io.reactivex.Completable;
 import io.reactivex.CompletableObserver;
 import io.reactivex.Observer;
 import io.reactivex.subjects.Subject;
 
-public class CompletableParallelEvents extends Completable {
+public class CompletableParallel<PARALLEL> extends Completable {
 
-    private Subject<Event> eventObservable;
+    private Subject<PARALLEL> eventObservable;
     private Completable flowCompletable;
 
-    public CompletableParallelEvents(Completable flowCompletable, Subject<Event> eventObservable) {
+    public CompletableParallel(Completable flowCompletable, Subject<PARALLEL> eventObservable) {
         this.flowCompletable = flowCompletable;
         this.eventObservable = eventObservable;
     }
@@ -20,8 +20,8 @@ public class CompletableParallelEvents extends Completable {
         flowCompletable.subscribe(s);
     }
 
-    public Completable subscribeForEvents(Observer<Event> eventObservable) {
-        if (eventObservable != null) {
+    public Completable subscribeForEvents(Observer<PARALLEL> eventObservable) {
+        if (this.eventObservable != null && eventObservable != null) {
             this.eventObservable.subscribeWith(eventObservable);
         }
         return flowCompletable;
