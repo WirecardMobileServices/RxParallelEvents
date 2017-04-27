@@ -2,6 +2,9 @@ package de.wirecard.rxparallel;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
+import io.reactivex.Single;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.functions.Function;
 import io.reactivex.subjects.Subject;
 
 public class ObservableParallel<OBSERVABLE, PARALLEL> extends Observable<OBSERVABLE> {
@@ -24,5 +27,14 @@ public class ObservableParallel<OBSERVABLE, PARALLEL> extends Observable<OBSERVA
             this.eventObservable.subscribeWith(eventObservable);
         }
         return flowObservable;
+    }
+
+    public static <OBSERVABLE, PARALLEL> Function<? super Single<OBSERVABLE>, SingleParallel<OBSERVABLE, PARALLEL>> with(final Subject<PARALLEL> subject) {
+        return new Function<Single<OBSERVABLE>, SingleParallel<OBSERVABLE, PARALLEL>>() {
+            @Override
+            public SingleParallel<OBSERVABLE, PARALLEL> apply(@NonNull Single<OBSERVABLE> observableSingle) throws Exception {
+                return new SingleParallel<OBSERVABLE, PARALLEL>(observableSingle, subject);
+            }
+        };
     }
 }
