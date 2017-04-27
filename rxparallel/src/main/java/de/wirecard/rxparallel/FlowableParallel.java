@@ -13,7 +13,9 @@ public class FlowableParallel<FLOWABLE, PARALLEL> extends Flowable<FLOWABLE> {
     private Flowable<FLOWABLE> mainFlowable;
     private Subject<PARALLEL> parallelSubject;
 
-    public FlowableParallel(Flowable<FLOWABLE> mainFlowable, Subject<PARALLEL> parallelSubject) {
+    private FlowableParallel(Flowable<FLOWABLE> mainFlowable, Subject<PARALLEL> parallelSubject) {
+        if(mainFlowable == null)
+            throw new NullPointerException("Main flowable can not be null");
         this.mainFlowable = mainFlowable;
         this.parallelSubject = parallelSubject;
     }

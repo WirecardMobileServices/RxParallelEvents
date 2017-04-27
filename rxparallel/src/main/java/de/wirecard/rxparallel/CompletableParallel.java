@@ -12,7 +12,9 @@ public class CompletableParallel<PARALLEL> extends Completable {
     private Completable mainCompletable;
     private Subject<PARALLEL> parallelSubject;
 
-    public CompletableParallel(Completable mainCompletable, Subject<PARALLEL> parallelSubject) {
+    private CompletableParallel(Completable mainCompletable, Subject<PARALLEL> parallelSubject) {
+        if(mainCompletable == null)
+            throw new NullPointerException("Main completable can not be null");
         this.mainCompletable = mainCompletable;
         this.parallelSubject = parallelSubject;
     }

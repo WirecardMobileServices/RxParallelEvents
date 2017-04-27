@@ -11,7 +11,9 @@ public class ObservableParallel<OBSERVABLE, PARALLEL> extends Observable<OBSERVA
     private Observable<OBSERVABLE> mainObservable;
     private Subject<PARALLEL> parallelSubject;
 
-    public ObservableParallel(Observable<OBSERVABLE> mainObservable, Subject<PARALLEL> parallelSubject) {
+    private ObservableParallel(Observable<OBSERVABLE> mainObservable, Subject<PARALLEL> parallelSubject) {
+        if(mainObservable == null)
+            throw new NullPointerException("Main observable can not be null");
         this.mainObservable = mainObservable;
         this.parallelSubject = parallelSubject;
     }

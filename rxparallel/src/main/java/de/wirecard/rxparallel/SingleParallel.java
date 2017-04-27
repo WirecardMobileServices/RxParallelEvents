@@ -12,7 +12,9 @@ public class SingleParallel<SINGLE, PARALLEL> extends Single<SINGLE> {
     private Single<SINGLE> mainSingle;
     private Subject<PARALLEL> parallelSubject;
 
-    public SingleParallel(Single<SINGLE> mainSingle, Subject<PARALLEL> parallelSubject) {
+    private SingleParallel(Single<SINGLE> mainSingle, Subject<PARALLEL> parallelSubject) {
+        if(mainSingle == null)
+            throw new NullPointerException("Main single can not be null");
         this.mainSingle = mainSingle;
         this.parallelSubject = parallelSubject;
     }

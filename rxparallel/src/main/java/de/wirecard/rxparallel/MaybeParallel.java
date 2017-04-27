@@ -12,7 +12,9 @@ public class MaybeParallel<MAYBE, PARALLEL> extends Maybe<MAYBE> {
     private Maybe<MAYBE> mainMaybe;
     private Subject<PARALLEL> parallelSubject;
 
-    public MaybeParallel(Maybe<MAYBE> mainMaybe, Subject<PARALLEL> parallelSubject) {
+    private MaybeParallel(Maybe<MAYBE> mainMaybe, Subject<PARALLEL> parallelSubject) {
+        if(mainMaybe == null)
+            throw new NullPointerException("Main maybe can not be null");
         this.mainMaybe = mainMaybe;
         this.parallelSubject = parallelSubject;
     }
