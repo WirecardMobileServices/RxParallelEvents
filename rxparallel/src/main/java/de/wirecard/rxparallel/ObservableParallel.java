@@ -2,38 +2,37 @@ package de.wirecard.rxparallel;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
-import io.reactivex.Single;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Function;
 import io.reactivex.subjects.Subject;
 
 public class ObservableParallel<OBSERVABLE, PARALLEL> extends Observable<OBSERVABLE> {
 
-    private Subject<PARALLEL> eventObservable;
-    private Observable<OBSERVABLE> flowObservable;
+    private Observable<OBSERVABLE> mainObservable;
+    private Subject<PARALLEL> parallelSubject;
 
-    public ObservableParallel(Observable<OBSERVABLE> flowObservable, Subject<PARALLEL> eventObservable) {
-        this.flowObservable = flowObservable;
-        this.eventObservable = eventObservable;
+    public ObservableParallel(Observable<OBSERVABLE> mainObservable, Subject<PARALLEL> parallelSubject) {
+        this.mainObservable = mainObservable;
+        this.parallelSubject = parallelSubject;
     }
 
     @Override
     protected void subscribeActual(Observer<? super OBSERVABLE> observer) {
-        flowObservable.subscribe(observer);
+        mainObservable.subscribe(observer);
     }
 
-    public Observable<OBSERVABLE> subscribeForEvents(Observer<PARALLEL> eventObservable) {
-        if (this.eventObservable != null && eventObservable != null) {
-            this.eventObservable.subscribeWith(eventObservable);
+    public Observable<OBSERVABLE> subscribeParallel(Observer<PARALLEL> parallelObserver) {
+        if (this.parallelSubject != null && parallelObserver != null) {
+            this.parallelSubject.subscribeWith(parallelObserver);
         }
-        return flowObservable;
+        return mainObservable;
     }
 
-    public static <OBSERVABLE, PARALLEL> Function<? super Single<OBSERVABLE>, SingleParallel<OBSERVABLE, PARALLEL>> with(final Subject<PARALLEL> subject) {
-        return new Function<Single<OBSERVABLE>, SingleParallel<OBSERVABLE, PARALLEL>>() {
+    public static <OBSERVABLE, PARALLEL> Function<? super Observable<OBSERVABLE>, ObservableParallel<OBSERVABLE, PARALLEL>> with(final Subject<PARALLEL> parallelSubject) {
+        return new Function<Observable<OBSERVABLE>, ObservableParallel<OBSERVABLE, PARALLEL>>() {
             @Override
-            public SingleParallel<OBSERVABLE, PARALLEL> apply(@NonNull Single<OBSERVABLE> observableSingle) throws Exception {
-                return new SingleParallel<OBSERVABLE, PARALLEL>(observableSingle, subject);
+            public ObservableParallel<OBSERVABLE, PARALLEL> apply(@NonNull Observable<OBSERVABLE> observable) throws Exception {
+                return new ObservableParallel<OBSERVABLE, PARALLEL>(observable, parallelSubject);
             }
         };
     }

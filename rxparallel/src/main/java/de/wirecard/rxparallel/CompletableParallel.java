@@ -9,31 +9,31 @@ import io.reactivex.subjects.Subject;
 
 public class CompletableParallel<PARALLEL> extends Completable {
 
-    private Subject<PARALLEL> eventObservable;
-    private Completable flowCompletable;
+    private Completable mainCompletable;
+    private Subject<PARALLEL> parallelSubject;
 
-    public CompletableParallel(Completable flowCompletable, Subject<PARALLEL> eventObservable) {
-        this.flowCompletable = flowCompletable;
-        this.eventObservable = eventObservable;
+    public CompletableParallel(Completable mainCompletable, Subject<PARALLEL> parallelSubject) {
+        this.mainCompletable = mainCompletable;
+        this.parallelSubject = parallelSubject;
     }
 
     @Override
     protected void subscribeActual(CompletableObserver s) {
-        flowCompletable.subscribe(s);
+        mainCompletable.subscribe(s);
     }
 
-    public Completable subscribeForEvents(Observer<PARALLEL> eventObservable) {
-        if (this.eventObservable != null && eventObservable != null) {
-            this.eventObservable.subscribeWith(eventObservable);
+    public Completable subscribeParallel(Observer<PARALLEL> parallelObserver) {
+        if (this.parallelSubject != null && parallelObserver != null) {
+            this.parallelSubject.subscribeWith(parallelObserver);
         }
-        return flowCompletable;
+        return mainCompletable;
     }
 
-    public static <PARALLEL> Function<? super Completable, CompletableParallel<PARALLEL>> with(final Subject<PARALLEL> subject) {
+    public static <PARALLEL> Function<? super Completable, CompletableParallel<PARALLEL>> with(final Subject<PARALLEL> parallelSubject) {
         return new Function<Completable, CompletableParallel<PARALLEL>>() {
             @Override
             public CompletableParallel<PARALLEL> apply(@NonNull Completable completable) throws Exception {
-                return new CompletableParallel<PARALLEL>(completable, subject);
+                return new CompletableParallel<PARALLEL>(completable, parallelSubject);
             }
         };
     }

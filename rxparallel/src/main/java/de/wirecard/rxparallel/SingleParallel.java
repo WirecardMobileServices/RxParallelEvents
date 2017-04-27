@@ -1,6 +1,5 @@
 package de.wirecard.rxparallel;
 
-import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.Single;
 import io.reactivex.SingleObserver;
@@ -10,31 +9,31 @@ import io.reactivex.subjects.Subject;
 
 public class SingleParallel<SINGLE, PARALLEL> extends Single<SINGLE> {
 
-    private Subject<PARALLEL> eventObservable;
-    private Single<SINGLE> flowSingle;
+    private Single<SINGLE> mainSingle;
+    private Subject<PARALLEL> parallelSubject;
 
-    public SingleParallel(Single<SINGLE> flowSingle, Subject<PARALLEL> eventObservable) {
-        this.flowSingle = flowSingle;
-        this.eventObservable = eventObservable;
+    public SingleParallel(Single<SINGLE> mainSingle, Subject<PARALLEL> parallelSubject) {
+        this.mainSingle = mainSingle;
+        this.parallelSubject = parallelSubject;
     }
 
     @Override
     protected void subscribeActual(SingleObserver<? super SINGLE> observer) {
-        flowSingle.subscribe(observer);
+        mainSingle.subscribe(observer);
     }
 
-    public Single<SINGLE> subscribeForEvents(Observer<PARALLEL> eventObservable) {
-        if (this.eventObservable != null && eventObservable != null) {
-            this.eventObservable.subscribeWith(eventObservable);
+    public Single<SINGLE> subscribeParallel(Observer<PARALLEL> parallelObserver) {
+        if (this.parallelSubject != null && parallelObserver != null) {
+            this.parallelSubject.subscribeWith(parallelObserver);
         }
-        return flowSingle;
+        return mainSingle;
     }
 
-    public static <SINGLE, PARALLEL> Function<? super Observable<SINGLE>, ObservableParallel<SINGLE, PARALLEL>> with(final Subject<PARALLEL> subject) {
-        return new Function<Observable<SINGLE>, ObservableParallel<SINGLE, PARALLEL>>() {
+    public static <SINGLE, PARALLEL> Function<? super Single<SINGLE>, SingleParallel<SINGLE, PARALLEL>> with(final Subject<PARALLEL> parallelSubject) {
+        return new Function<Single<SINGLE>, SingleParallel<SINGLE, PARALLEL>>() {
             @Override
-            public ObservableParallel<SINGLE, PARALLEL> apply(@NonNull Observable<SINGLE> singleObservable) throws Exception {
-                return new ObservableParallel<SINGLE, PARALLEL>(singleObservable, subject);
+            public SingleParallel<SINGLE, PARALLEL> apply(@NonNull Single<SINGLE> single) throws Exception {
+                return new SingleParallel<SINGLE, PARALLEL>(single, parallelSubject);
             }
         };
     }
