@@ -1,22 +1,23 @@
 package de.wirecard.rxparallel;
 
+import com.jakewharton.rxrelay2.Relay;
+
 import io.reactivex.Maybe;
 import io.reactivex.MaybeObserver;
 import io.reactivex.Observer;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Function;
-import io.reactivex.subjects.Subject;
 
 public class MaybeParallel<MAYBE, PARALLEL> extends Maybe<MAYBE> {
 
     private Maybe<MAYBE> mainMaybe;
-    private Subject<PARALLEL> parallelSubject;
+    private Relay<PARALLEL> parallelRelay;
 
-    private MaybeParallel(Maybe<MAYBE> mainMaybe, Subject<PARALLEL> parallelSubject) {
-        if(mainMaybe == null)
+    private MaybeParallel(Maybe<MAYBE> mainMaybe, Relay<PARALLEL> parallelRelay) {
+        if (mainMaybe == null)
             throw new NullPointerException("Main maybe can not be null");
         this.mainMaybe = mainMaybe;
-        this.parallelSubject = parallelSubject;
+        this.parallelRelay = parallelRelay;
     }
 
     @Override
@@ -25,17 +26,17 @@ public class MaybeParallel<MAYBE, PARALLEL> extends Maybe<MAYBE> {
     }
 
     public Maybe<MAYBE> subscribeParallel(Observer<PARALLEL> parallelObserver) {
-        if (this.parallelSubject != null && parallelObserver != null) {
-            this.parallelSubject.subscribeWith(parallelObserver);
+        if (this.parallelRelay != null && parallelObserver != null) {
+            this.parallelRelay.subscribeWith(parallelObserver);
         }
         return mainMaybe;
     }
 
-    public static <MAYBE, PARALLEL> Function<? super Maybe<MAYBE>, MaybeParallel<MAYBE, PARALLEL>> with(final Subject<PARALLEL> parallelSubject) {
+    public static <MAYBE, PARALLEL> Function<? super Maybe<MAYBE>, MaybeParallel<MAYBE, PARALLEL>> with(final Relay<PARALLEL> parallelRelay) {
         return new Function<Maybe<MAYBE>, MaybeParallel<MAYBE, PARALLEL>>() {
             @Override
             public MaybeParallel<MAYBE, PARALLEL> apply(@NonNull Maybe<MAYBE> maybe) throws Exception {
-                return new MaybeParallel<MAYBE, PARALLEL>(maybe, parallelSubject);
+                return new MaybeParallel<MAYBE, PARALLEL>(maybe, parallelRelay);
             }
         };
     }

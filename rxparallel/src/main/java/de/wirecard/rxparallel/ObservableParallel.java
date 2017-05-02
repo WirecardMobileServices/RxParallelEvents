@@ -1,21 +1,22 @@
 package de.wirecard.rxparallel;
 
+import com.jakewharton.rxrelay2.Relay;
+
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Function;
-import io.reactivex.subjects.Subject;
 
 public class ObservableParallel<OBSERVABLE, PARALLEL> extends Observable<OBSERVABLE> {
 
     private Observable<OBSERVABLE> mainObservable;
-    private Subject<PARALLEL> parallelSubject;
+    private Relay<PARALLEL> parallelRelay;
 
-    private ObservableParallel(Observable<OBSERVABLE> mainObservable, Subject<PARALLEL> parallelSubject) {
-        if(mainObservable == null)
+    private ObservableParallel(Observable<OBSERVABLE> mainObservable, Relay<PARALLEL> parallelRelay) {
+        if (mainObservable == null)
             throw new NullPointerException("Main observable can not be null");
         this.mainObservable = mainObservable;
-        this.parallelSubject = parallelSubject;
+        this.parallelRelay = parallelRelay;
     }
 
     @Override
@@ -24,17 +25,17 @@ public class ObservableParallel<OBSERVABLE, PARALLEL> extends Observable<OBSERVA
     }
 
     public Observable<OBSERVABLE> subscribeParallel(Observer<PARALLEL> parallelObserver) {
-        if (this.parallelSubject != null && parallelObserver != null) {
-            this.parallelSubject.subscribeWith(parallelObserver);
+        if (this.parallelRelay != null && parallelObserver != null) {
+            this.parallelRelay.subscribeWith(parallelObserver);
         }
         return mainObservable;
     }
 
-    public static <OBSERVABLE, PARALLEL> Function<? super Observable<OBSERVABLE>, ObservableParallel<OBSERVABLE, PARALLEL>> with(final Subject<PARALLEL> parallelSubject) {
+    public static <OBSERVABLE, PARALLEL> Function<? super Observable<OBSERVABLE>, ObservableParallel<OBSERVABLE, PARALLEL>> with(final Relay<PARALLEL> parallelRelay) {
         return new Function<Observable<OBSERVABLE>, ObservableParallel<OBSERVABLE, PARALLEL>>() {
             @Override
             public ObservableParallel<OBSERVABLE, PARALLEL> apply(@NonNull Observable<OBSERVABLE> observable) throws Exception {
-                return new ObservableParallel<OBSERVABLE, PARALLEL>(observable, parallelSubject);
+                return new ObservableParallel<OBSERVABLE, PARALLEL>(observable, parallelRelay);
             }
         };
     }

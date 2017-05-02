@@ -1,23 +1,24 @@
 package de.wirecard.rxparallel;
 
+import com.jakewharton.rxrelay2.Relay;
+
 import org.reactivestreams.Subscriber;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observer;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Function;
-import io.reactivex.subjects.Subject;
 
 public class FlowableParallel<FLOWABLE, PARALLEL> extends Flowable<FLOWABLE> {
 
     private Flowable<FLOWABLE> mainFlowable;
-    private Subject<PARALLEL> parallelSubject;
+    private Relay<PARALLEL> parallelRelay;
 
-    private FlowableParallel(Flowable<FLOWABLE> mainFlowable, Subject<PARALLEL> parallelSubject) {
-        if(mainFlowable == null)
+    private FlowableParallel(Flowable<FLOWABLE> mainFlowable, Relay<PARALLEL> parallelRelay) {
+        if (mainFlowable == null)
             throw new NullPointerException("Main flowable can not be null");
         this.mainFlowable = mainFlowable;
-        this.parallelSubject = parallelSubject;
+        this.parallelRelay = parallelRelay;
     }
 
     @Override
@@ -26,17 +27,17 @@ public class FlowableParallel<FLOWABLE, PARALLEL> extends Flowable<FLOWABLE> {
     }
 
     public Flowable<FLOWABLE> subscribeParallel(Observer<PARALLEL> parallelObserver) {
-        if (this.parallelSubject != null && parallelObserver != null) {
-            this.parallelSubject.subscribeWith(parallelObserver);
+        if (this.parallelRelay != null && parallelObserver != null) {
+            this.parallelRelay.subscribeWith(parallelObserver);
         }
         return mainFlowable;
     }
 
-    public static <FLOWABLE, PARALLEL> Function<? super Flowable<FLOWABLE>, FlowableParallel<FLOWABLE, PARALLEL>> with(final Subject<PARALLEL> parallelSubject) {
+    public static <FLOWABLE, PARALLEL> Function<? super Flowable<FLOWABLE>, FlowableParallel<FLOWABLE, PARALLEL>> with(final Relay<PARALLEL> parallelRelay) {
         return new Function<Flowable<FLOWABLE>, FlowableParallel<FLOWABLE, PARALLEL>>() {
             @Override
             public FlowableParallel<FLOWABLE, PARALLEL> apply(@NonNull Flowable<FLOWABLE> flowable) throws Exception {
-                return new FlowableParallel<FLOWABLE, PARALLEL>(flowable, parallelSubject);
+                return new FlowableParallel<FLOWABLE, PARALLEL>(flowable, parallelRelay);
             }
         };
     }
