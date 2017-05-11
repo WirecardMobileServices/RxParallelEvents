@@ -2,6 +2,7 @@ package de.wirecard.rxparallel;
 
 import com.jakewharton.rxrelay2.Relay;
 
+import de.wirecard.rxparallel.util.RelayToObserver;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.annotations.NonNull;
@@ -27,6 +28,13 @@ public class ObservableParallel<OBSERVABLE, PARALLEL> extends Observable<OBSERVA
     public Observable<OBSERVABLE> subscribeParallel(Observer<PARALLEL> parallelObserver) {
         if (this.parallelRelay != null && parallelObserver != null) {
             this.parallelRelay.subscribeWith(parallelObserver);
+        }
+        return mainObservable;
+    }
+
+    public Observable<OBSERVABLE> subscribeParallel(Relay<PARALLEL> parallelRelay) {
+        if (this.parallelRelay != null && parallelRelay != null) {
+            this.parallelRelay.subscribeWith(new RelayToObserver<PARALLEL>(parallelRelay));
         }
         return mainObservable;
     }

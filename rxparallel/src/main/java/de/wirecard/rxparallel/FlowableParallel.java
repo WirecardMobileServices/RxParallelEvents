@@ -4,6 +4,7 @@ import com.jakewharton.rxrelay2.Relay;
 
 import org.reactivestreams.Subscriber;
 
+import de.wirecard.rxparallel.util.RelayToObserver;
 import io.reactivex.Flowable;
 import io.reactivex.Observer;
 import io.reactivex.annotations.NonNull;
@@ -29,6 +30,13 @@ public class FlowableParallel<FLOWABLE, PARALLEL> extends Flowable<FLOWABLE> {
     public Flowable<FLOWABLE> subscribeParallel(Observer<PARALLEL> parallelObserver) {
         if (this.parallelRelay != null && parallelObserver != null) {
             this.parallelRelay.subscribeWith(parallelObserver);
+        }
+        return mainFlowable;
+    }
+
+    public Flowable<FLOWABLE> subscribeParallel(Relay<PARALLEL> parallelRelay) {
+        if (this.parallelRelay != null && parallelRelay != null) {
+            this.parallelRelay.subscribeWith(new RelayToObserver<PARALLEL>(parallelRelay));
         }
         return mainFlowable;
     }

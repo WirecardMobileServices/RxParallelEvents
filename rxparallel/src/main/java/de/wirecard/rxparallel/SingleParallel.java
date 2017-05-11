@@ -2,6 +2,7 @@ package de.wirecard.rxparallel;
 
 import com.jakewharton.rxrelay2.Relay;
 
+import de.wirecard.rxparallel.util.RelayToObserver;
 import io.reactivex.Observer;
 import io.reactivex.Single;
 import io.reactivex.SingleObserver;
@@ -28,6 +29,13 @@ public class SingleParallel<SINGLE, PARALLEL> extends Single<SINGLE> {
     public Single<SINGLE> subscribeParallel(Observer<PARALLEL> parallelObserver) {
         if (this.parallelRelay != null && parallelObserver != null) {
             this.parallelRelay.subscribeWith(parallelObserver);
+        }
+        return mainSingle;
+    }
+
+    public Single<SINGLE> subscribeParallel(Relay<PARALLEL> parallelRelay) {
+        if (this.parallelRelay != null && parallelRelay != null) {
+            this.parallelRelay.subscribeWith(new RelayToObserver<PARALLEL>(parallelRelay));
         }
         return mainSingle;
     }

@@ -2,6 +2,7 @@ package de.wirecard.rxparallel;
 
 import com.jakewharton.rxrelay2.Relay;
 
+import de.wirecard.rxparallel.util.RelayToObserver;
 import io.reactivex.Maybe;
 import io.reactivex.MaybeObserver;
 import io.reactivex.Observer;
@@ -28,6 +29,13 @@ public class MaybeParallel<MAYBE, PARALLEL> extends Maybe<MAYBE> {
     public Maybe<MAYBE> subscribeParallel(Observer<PARALLEL> parallelObserver) {
         if (this.parallelRelay != null && parallelObserver != null) {
             this.parallelRelay.subscribeWith(parallelObserver);
+        }
+        return mainMaybe;
+    }
+
+    public Maybe<MAYBE> subscribeParallel(Relay<PARALLEL> parallelRelay) {
+        if (this.parallelRelay != null && parallelRelay != null) {
+            this.parallelRelay.subscribeWith(new RelayToObserver<PARALLEL>(parallelRelay));
         }
         return mainMaybe;
     }
