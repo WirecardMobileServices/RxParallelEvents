@@ -2,22 +2,24 @@ package de.wirecard.rxparallel;
 
 import com.jakewharton.rxrelay2.Relay;
 
-import de.wirecard.rxparallel.util.RelayToObserver;
+import de.wirecard.rxparallel.util.SafeDisposeAction;
 import io.reactivex.Completable;
 import io.reactivex.CompletableObserver;
 import io.reactivex.Observer;
 import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Function;
 
 public class CompletableParallel<PARALLEL> extends Completable {
-
+    private CompositeDisposable relayDisposable;
     private Completable mainCompletable;
     private Relay<PARALLEL> parallelRelay;
 
     private CompletableParallel(Completable mainCompletable, Relay<PARALLEL> parallelRelay) {
         if (mainCompletable == null)
             throw new NullPointerException("Main completable can not be null");
-        this.mainCompletable = mainCompletable;
+        relayDisposable = new CompositeDisposable();
+        this.mainCompletable = mainCompletable.doAfterTerminate(SafeDisposeAction.createAction(relayDisposable));
         this.parallelRelay = parallelRelay;
     }
 
@@ -35,7 +37,7 @@ public class CompletableParallel<PARALLEL> extends Completable {
 
     public Completable subscribeParallel(final Relay<PARALLEL> parallelRelay) {
         if (this.parallelRelay != null && parallelRelay != null) {
-            this.parallelRelay.subscribeWith(new RelayToObserver<PARALLEL>(parallelRelay));
+            relayDisposable.add(this.parallelRelay.subscribe(parallelRelay));
         }
         return mainCompletable;
     }
