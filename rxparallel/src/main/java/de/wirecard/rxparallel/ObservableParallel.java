@@ -2,21 +2,24 @@ package de.wirecard.rxparallel;
 
 import com.jakewharton.rxrelay2.Relay;
 
-import de.wirecard.rxparallel.util.RelayToObserver;
+import de.wirecard.rxparallel.util.SafeDisposeAction;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Function;
 
 public class ObservableParallel<OBSERVABLE, PARALLEL> extends Observable<OBSERVABLE> {
 
     private Observable<OBSERVABLE> mainObservable;
     private Relay<PARALLEL> parallelRelay;
+    private CompositeDisposable relayDisposable;
 
     private ObservableParallel(Observable<OBSERVABLE> mainObservable, Relay<PARALLEL> parallelRelay) {
         if (mainObservable == null)
             throw new NullPointerException("Main observable can not be null");
-        this.mainObservable = mainObservable;
+        relayDisposable = new CompositeDisposable();
+        this.mainObservable = mainObservable.doAfterTerminate(SafeDisposeAction.createAction(relayDisposable));
         this.parallelRelay = parallelRelay;
     }
 
@@ -34,7 +37,7 @@ public class ObservableParallel<OBSERVABLE, PARALLEL> extends Observable<OBSERVA
 
     public Observable<OBSERVABLE> subscribeParallel(Relay<PARALLEL> parallelRelay) {
         if (this.parallelRelay != null && parallelRelay != null) {
-            this.parallelRelay.subscribeWith(new RelayToObserver<PARALLEL>(parallelRelay));
+            relayDisposable.add(this.parallelRelay.subscribe(parallelRelay));
         }
         return mainObservable;
     }

@@ -2,22 +2,25 @@ package de.wirecard.rxparallel;
 
 import com.jakewharton.rxrelay2.Relay;
 
-import de.wirecard.rxparallel.util.RelayToObserver;
+import de.wirecard.rxparallel.util.SafeDisposeAction;
 import io.reactivex.Maybe;
 import io.reactivex.MaybeObserver;
 import io.reactivex.Observer;
 import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Function;
 
 public class MaybeParallel<MAYBE, PARALLEL> extends Maybe<MAYBE> {
 
     private Maybe<MAYBE> mainMaybe;
     private Relay<PARALLEL> parallelRelay;
+    private CompositeDisposable relayDisposable;
 
     private MaybeParallel(Maybe<MAYBE> mainMaybe, Relay<PARALLEL> parallelRelay) {
         if (mainMaybe == null)
             throw new NullPointerException("Main maybe can not be null");
-        this.mainMaybe = mainMaybe;
+        relayDisposable = new CompositeDisposable();
+        this.mainMaybe = mainMaybe.doAfterTerminate(SafeDisposeAction.createAction(relayDisposable));
         this.parallelRelay = parallelRelay;
     }
 
@@ -35,7 +38,7 @@ public class MaybeParallel<MAYBE, PARALLEL> extends Maybe<MAYBE> {
 
     public Maybe<MAYBE> subscribeParallel(Relay<PARALLEL> parallelRelay) {
         if (this.parallelRelay != null && parallelRelay != null) {
-            this.parallelRelay.subscribeWith(new RelayToObserver<PARALLEL>(parallelRelay));
+            relayDisposable.add(this.parallelRelay.subscribe(parallelRelay));
         }
         return mainMaybe;
     }

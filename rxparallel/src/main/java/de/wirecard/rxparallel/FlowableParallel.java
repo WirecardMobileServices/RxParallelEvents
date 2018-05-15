@@ -4,21 +4,23 @@ import com.jakewharton.rxrelay2.Relay;
 
 import org.reactivestreams.Subscriber;
 
-import de.wirecard.rxparallel.util.RelayToObserver;
+import de.wirecard.rxparallel.util.SafeDisposeAction;
 import io.reactivex.Flowable;
 import io.reactivex.Observer;
 import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Function;
 
 public class FlowableParallel<FLOWABLE, PARALLEL> extends Flowable<FLOWABLE> {
-
+    private CompositeDisposable relayDisposable;
     private Flowable<FLOWABLE> mainFlowable;
     private Relay<PARALLEL> parallelRelay;
 
     private FlowableParallel(Flowable<FLOWABLE> mainFlowable, Relay<PARALLEL> parallelRelay) {
         if (mainFlowable == null)
             throw new NullPointerException("Main flowable can not be null");
-        this.mainFlowable = mainFlowable;
+        relayDisposable = new CompositeDisposable();
+        this.mainFlowable = mainFlowable.doAfterTerminate(SafeDisposeAction.createAction(relayDisposable));
         this.parallelRelay = parallelRelay;
     }
 
@@ -36,7 +38,7 @@ public class FlowableParallel<FLOWABLE, PARALLEL> extends Flowable<FLOWABLE> {
 
     public Flowable<FLOWABLE> subscribeParallel(Relay<PARALLEL> parallelRelay) {
         if (this.parallelRelay != null && parallelRelay != null) {
-            this.parallelRelay.subscribeWith(new RelayToObserver<PARALLEL>(parallelRelay));
+            relayDisposable.add(this.parallelRelay.subscribe(parallelRelay));
         }
         return mainFlowable;
     }
